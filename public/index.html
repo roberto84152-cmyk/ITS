@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Юсявичус Даниил</title>
+    <style>
+      body {
+        margin: 0;
+        background: #101216;
+        color: #e6e8ec;
+        font: 15px/1.6 -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+      }
+      main { max-width: 860px; margin: 0 auto; padding: 32px 16px 48px; }
+      a { color: #8ab4f8; }
+      header { display: flex; gap: 18px; align-items: center; padding-bottom: 20px; border-bottom: 1px solid #2b303a; }
+      .avatar {
+        width: 84px; height: 84px; flex: 0 0 84px; border-radius: 12px;
+        background: #1a1e26; display: flex; align-items: center; justify-content: center;
+        font-size: 24px; color: #8ab4f8; overflow: hidden;
+      }
+      .avatar img { width: 100%; height: 100%; object-fit: cover; }
+      h1 { margin: 0 0 3px; font-size: 25px; }
+      .headline { margin: 0; color: #8fd6b4; }
+      .meta { margin-top: 5px; color: #9aa0aa; font-size: 14px; }
+      .links { margin-top: 9px; display: flex; flex-wrap: wrap; gap: 7px; }
+      .links a { padding: 3px 9px; border: 1px solid #343a46; border-radius: 999px; font-size: 13px; text-decoration: none; }
+      .description { margin: 16px 0 0; color: #c8cdd6; }
+      .grid { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 16px; margin-top: 20px; }
+      section { padding: 16px; border: 1px solid #2b303a; border-radius: 9px; background: #171a21; }
+      h2 { margin: 0 0 10px; font-size: 16px; }
+      h3 { margin: 0; font-size: 15px; }
+      .job { margin-bottom: 14px; }
+      .job:last-child { margin-bottom: 0; }
+      .period { color: #9aa0aa; font-size: 13px; }
+      .position { color: #8fd6b4; font-size: 14px; }
+      ul { margin: 7px 0 0; padding-left: 18px; }
+      li { margin: 3px 0; color: #c8cdd6; }
+      .chips { display: flex; flex-wrap: wrap; gap: 5px; }
+      .chip { padding: 3px 7px; border-radius: 5px; background: #20242c; font-size: 13px; }
+      .projects { margin-top: 16px; }
+      .project { padding: 11px 0; border-top: 1px solid #2b303a; }
+      .project:first-of-type { border-top: 0; padding-top: 0; }
+      .project p { margin: 5px 0; color: #c8cdd6; }
+      .console { margin-top: 16px; }
+      .console-top { display: flex; flex-wrap: wrap; gap: 9px; align-items: center; justify-content: space-between; margin-bottom: 9px; }
+      textarea {
+        width: 100%; min-height: 180px; padding: 11px; border: 1px solid #2b303a;
+        border-radius: 7px; background: #101216; color: #e6e8ec;
+        font: 13px/1.5 ui-monospace, Menlo, Consolas, monospace; resize: vertical;
+      }
+      button { padding: 7px 13px; border: 1px solid #3b5bdb; border-radius: 6px; background: #2b3a6b; color: #fff; cursor: pointer; }
+      button:disabled { opacity: 0.6; cursor: wait; }
+      pre {
+        margin: 9px 0 0; padding: 11px; max-height: 320px; overflow: auto;
+        border: 1px solid #2b303a; border-radius: 7px; background: #101216; color: #cfe0ff;
+        font: 12px/1.5 ui-monospace, Menlo, Consolas, monospace; white-space: pre-wrap; word-break: break-word;
+      }
+      .status { color: #9aa0aa; font-size: 13px; }
+      .status.error { color: #ff9b9b; }
+      footer { margin-top: 18px; color: #9aa0aa; font-size: 13px; }
+      @media (max-width: 700px) {
+        header { display: block; }
+        .avatar { margin-bottom: 10px; }
+        .grid { grid-template-columns: 1fr; }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <div id="app">Загружаю профиль…</div>
+
+      <section class="console">
+        <div class="console-top">
+          <div>
+            <h2 style="margin: 0">GraphQL</h2>
+            <div class="status" id="status">/graphql</div>
+          </div>
+          <div class="links">
+            <button id="run" type="button">Выполнить</button>
+            <a href="/graphql">Apollo Sandbox</a>
+            <a href="/health">health</a>
+          </div>
+        </div>
+        <textarea id="query" spellcheck="false"></textarea>
+        <pre id="result">Нажмите «Выполнить».</pre>
+      </section>
+
+      <footer>
+        NestJS, Prisma, GraphQL, PostgreSQL, S3, Docker.
+        Если Apollo Sandbox не открывается, работайте через консоль выше.
+      </footer>
+    </main>
+
+    <script>
+      const QUERY = `query {
+  profile {
+    name
+    headline
+    description
+    location
+    email
+    avatarUrl
+    links { label url }
+    skills { name }
+    experience { company position startDate endDate isCurrent achievements }
+    projects { name description stack url repoUrl }
+  }
+}`;
+
+      const app = document.getElementById('app');
+      const statusEl = document.getElementById('status');
+      const resultEl = document.getElementById('result');
+      const queryEl = document.getElementById('query');
+      const runEl = document.getElementById('run');
+
+      queryEl.value = QUERY;
+
+      function esc(value) {
+        return String(value ?? '').replace(/[&<>"']/g, (char) => ({
+          '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+        }[char]));
+      }
+
+      function safeUrl(value) {
+        try {
+          const parsed = new URL(value);
+          return parsed.protocol === 'http:' || parsed.protocol === 'https:' ? parsed.href : '#';
+        } catch {
+          return '#';
+        }
+      }
+
+      function formatDate(value) {
+        if (!value) return '';
+        const parsed = new Date(value);
+        return Number.isNaN(parsed.getTime())
+          ? ''
+          : new Intl.DateTimeFormat('ru-RU', { month: 'short', year: 'numeric' }).format(parsed);
+      }
+
+      function period(job) {
+        const end = job.isCurrent ? 'сейчас' : formatDate(job.endDate);
+        return [formatDate(job.startDate), end].filter(Boolean).join(' — ');
+      }
+
+      function initials(name) {
+        return String(name || '')
+          .split(/\s+/)
+          .filter(Boolean)
+          .slice(0, 2)
+          .map((part) => part[0].toUpperCase())
+          .join('');
+      }
+
+      function render(profile) {
+        const links = (profile.links || [])
+          .map((link) => `<a href="${esc(safeUrl(link.url))}" target="_blank" rel="noreferrer">${esc(link.label)}</a>`)
+          .join('');
+
+        const skills = (profile.skills || [])
+          .map((skill) => `<span class="chip">${esc(skill.name)}</span>`)
+          .join('');
+
+        const jobs = (profile.experience || [])
+          .map((job) => `
+            <div class="job">
+              <div class="period">${esc(period(job))}</div>
+              <h3>${esc(job.company)}</h3>
+              <div class="position">${esc(job.position)}</div>
+              <ul>${(job.achievements || []).map((item) => `<li>${esc(item)}</li>`).join('')}</ul>
+            </div>
+          `)
+          .join('');
+
+        const projects = (profile.projects || [])
+          .map((project) => {
+            const link = project.url || project.repoUrl;
+            const title = link
+              ? `<a href="${esc(safeUrl(link))}" target="_blank" rel="noreferrer">${esc(project.name)}</a>`
+              : esc(project.name);
+            return `
+              <div class="project">
+                <h3>${title}</h3>
+                ${project.description ? `<p>${esc(project.description)}</p>` : ''}
+                <div class="chips">${(project.stack || []).map((item) => `<span class="chip">${esc(item)}</span>`).join('')}</div>
+              </div>
+            `;
+          })
+          .join('');
+
+        const avatar = profile.avatarUrl
+          ? `<img src="${esc(safeUrl(profile.avatarUrl))}" alt="${esc(profile.name)}" />`
+          : esc(initials(profile.name));
+
+        app.innerHTML = `
+          <header>
+            <div class="avatar">${avatar}</div>
+            <div>
+              <h1>${esc(profile.name)}</h1>
+              <p class="headline">${esc(profile.headline)}</p>
+              <div class="meta">${[profile.location, profile.email].filter(Boolean).map(esc).join(' · ')}</div>
+              <div class="links">${links}</div>
+            </div>
+          </header>
+          <p class="description">${esc(profile.description)}</p>
+          <div class="grid">
+            <section>
+              <h2>Опыт</h2>
+              ${jobs}
+            </section>
+            <section>
+              <h2>Навыки</h2>
+              <div class="chips">${skills}</div>
+            </section>
+          </div>
+          <section class="projects">
+            <h2>Проекты</h2>
+            ${projects}
+          </section>
+        `;
+      }
+
+      async function run() {
+        runEl.disabled = true;
+        statusEl.classList.remove('error');
+        statusEl.textContent = 'Выполняю…';
+
+        try {
+          const response = await fetch('/graphql', {
+            method: 'POST',
+            headers: { 'content-type': 'application/json' },
+            body: JSON.stringify({ query: queryEl.value }),
+          });
+          const payload = await response.json();
+          resultEl.textContent = JSON.stringify(payload, null, 2);
+
+          if (response.ok && !payload.errors) {
+            statusEl.textContent = `Готово (${response.status})`;
+          } else {
+            statusEl.classList.add('error');
+            statusEl.textContent = `Ошибка GraphQL (${response.status})`;
+          }
+          return payload;
+        } catch (error) {
+          statusEl.classList.add('error');
+          statusEl.textContent = 'Запрос не выполнился';
+          resultEl.textContent = String(error);
+          return null;
+        } finally {
+          runEl.disabled = false;
+        }
+      }
+
+      runEl.addEventListener('click', run);
+
+      run().then((payload) => {
+        const profile = payload && payload.data && payload.data.profile;
+        if (profile) {
+          render(profile);
+        } else {
+          app.textContent = 'Не удалось загрузить профиль. Проверьте /health.';
+        }
+      });
+    </script>
+  </body>
+</html>
