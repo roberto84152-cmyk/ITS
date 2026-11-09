@@ -1,0 +1,78 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+type Experience {
+  achievements: [String!]!
+  company: String!
+  endDate: DateTime
+  id: ID!
+  isCurrent: Boolean!
+  position: String!
+  startDate: DateTime!
+}
+
+enum LinkKind {
+  EMAIL
+  GITHUB
+  LINKEDIN
+  OTHER
+  TELEGRAM
+  WEBSITE
+}
+
+type Profile {
+  avatarUrl: String
+  description: String!
+  email: String
+  experience: [Experience!]!
+  headline: String!
+  id: ID!
+  links: [ProfileLink!]!
+  location: String
+  name: String!
+  projects: [Project!]!
+  skills: [Skill!]!
+}
+
+type ProfileLink {
+  id: ID!
+  kind: LinkKind!
+  label: String!
+  url: String!
+}
+
+type Project {
+  description: String
+  id: ID!
+  name: String!
+  repoUrl: String
+  stack: [String!]!
+  url: String
+}
+
+type Query {
+  profile: Profile!
+  profiles: [Profile!]!
+}
+
+type Skill {
+  category: SkillCategory!
+  id: ID!
+  level: Int
+  name: String!
+}
+
+enum SkillCategory {
+  DATABASE
+  DEVOPS
+  FRAMEWORK
+  LANGUAGE
+  MOBILE
+  OTHER
+}

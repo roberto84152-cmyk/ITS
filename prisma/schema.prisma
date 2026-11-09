@@ -1,0 +1,116 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Profile {
+  id          String        @id @default(uuid())
+  name        String
+  headline    String
+  description String
+  location    String?
+  email       String?
+  avatarKey   String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  links       ProfileLink[]
+  skills      Skill[]
+  experience  Experience[]
+  projects    Project[]
+
+  @@map("profiles")
+}
+
+enum LinkKind {
+  WEBSITE
+  GITHUB
+  LINKEDIN
+  TELEGRAM
+  EMAIL
+  OTHER
+
+  @@map("link_kind")
+}
+
+model ProfileLink {
+  id        String   @id @default(uuid())
+  profileId String
+  profile   Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  label     String
+  url       String
+  kind      LinkKind @default(OTHER)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([profileId, url])
+  @@index([profileId, sortOrder])
+  @@map("profile_links")
+}
+
+enum SkillCategory {
+  LANGUAGE
+  FRAMEWORK
+  DATABASE
+  DEVOPS
+  MOBILE
+  OTHER
+
+  @@map("skill_category")
+}
+
+model Skill {
+  id        String        @id @default(uuid())
+  profileId String
+  profile   Profile       @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  name      String
+  category  SkillCategory @default(OTHER)
+  level     Int?
+  sortOrder Int           @default(0)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  @@unique([profileId, name])
+  @@index([profileId, sortOrder])
+  @@map("skills")
+}
+
+model Experience {
+  id           String    @id @default(uuid())
+  profileId    String
+  profile      Profile   @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  company      String
+  position     String
+  startDate    DateTime  @db.Date
+  endDate      DateTime? @db.Date
+  isCurrent    Boolean   @default(false)
+  achievements String[]
+  sortOrder    Int       @default(0)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@index([profileId, sortOrder])
+  @@map("experience")
+}
+
+model Project {
+  id          String   @id @default(uuid())
+  profileId   String
+  profile     Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  name        String
+  description String?
+  url         String?
+  repoUrl     String?
+  stack       String[]
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([profileId, name])
+  @@index([profileId, sortOrder])
+  @@map("projects")
+}
